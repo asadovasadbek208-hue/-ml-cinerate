@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  avatar    String?
+  bgImage   String?
+  bio       String?
+  sticker   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ratings          Rating[]
+  comments         Comment[]
+  posts            Post[]
+  likes            Like[]
+  wishlist         Wishlist[]
+  followers        Follow[]  @relation("following")
+  following        Follow[]  @relation("follower")
+  sentMessages     Message[] @relation("sender")
+  receivedMessages Message[] @relation("receiver")
+}
+
+model Movie {
+  id            String    @id @default(uuid())
+  title         String
+  originalTitle String?
+  description   String?
+  poster        String?
+  year          Int?
+  type          MovieType
+  genres        String[]
+  director      String?
+  studio        String?
+  episodes      Int?
+  status        String?
+  trailer       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  ratings  Rating[]
+  comments Comment[]
+  wishlist Wishlist[]
+}
+
+enum MovieType {
+  MOVIE
+  SERIES
+  ANIME
+  DRAMA
+}
+
+model Rating {
+  id        String   @id @default(uuid())
+  userId    String
+  movieId   String
+  movieType String   @default("MOVIE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Universal
+  storyline     Float?
+  acting        Float?
+  direction     Float?
+  soundtrack    Float?
+  pacing        Float?
+  characters    Float?
+  emotional     Float?
+  originality   Float?
+
+  // Movie specific
+  screenplay    Float?
+  cinematography Float?
+  editing       Float?
+  production    Float?
+  vfx           Float?
+
+  // Series specific
+  writing       Float?
+  rewatchability Float?
+
+  // Anime specific
+  animation     Float?
+  artstyle      Float?
+  voiceacting   Float?
+  worldbuilding Float?
+
+  // Drama specific
+  chemistry     Float?
+  ost           Float?
+  ending        Float?
+
+  average Float?
+  review  String?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  userId    String
+  movieId   String?
+  postId    String?
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie? @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  post  Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes Like[]
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  content   String
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  commentId String?
+  postId    String?
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@unique([userId, postId])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  movieId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  content    String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+}
