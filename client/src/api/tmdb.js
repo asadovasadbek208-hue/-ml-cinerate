@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const BASE_URL = 'https://api.themoviedb.org/3';
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || 'a47be8a4cfabd38cc9a3fd3954c1f6fd';const BASE_URL = 'https://api.themoviedb.org/3';
 export const IMG_BASE = 'https://image.tmdb.org/t/p/w500';
 export const IMG_ORIGINAL = 'https://image.tmdb.org/t/p/original';
 
